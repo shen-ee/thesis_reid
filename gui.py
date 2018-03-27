@@ -16,6 +16,7 @@ class App:
         self.frame0 = Frame(self.root)
         self.frame1 = Frame(self.root)
         self.frame2 = Frame(self.root)
+        self.frame_match = Frame(self.root)  # 显示匹配结果
 
         label_dataset_name = Label(self.frame0,text="数据集名称："+dataset_name)
         label_dataset_dir = Label(self.frame0,text="数据集路径："+dataset_dir)
@@ -33,9 +34,13 @@ class App:
         self.label_filename2 = Label(self.frame2)
         self.button2 = Button(self.frame2, text="下一张", command=self.confirm2)
 
+        # frame_match
+        label_match = Label(self.frame_match,text="匹配结果：+++")
+
         self.frame0.grid(row = 0,columnspan=2)
         self.frame1.grid(row = 1,column = 0)
         self.frame2.grid(row=1, column=1)
+        self.frame_match.grid(row=2,columnspan=2)
 
         label_dataset_name.grid(row=0,sticky=W,columnspan=3)
         label_dataset_dir.grid(row=1,sticky=W,columnspan=3)
@@ -50,6 +55,8 @@ class App:
         self.label_person_image_cam2.pack()
         self.label_filename2.pack()
         self.button2.pack()
+
+        label_match.grid(row=0,sticky=W)
 
         self.root.mainloop()
 
