@@ -2,6 +2,7 @@
 from tkinter import *
 from PIL import Image, ImageTk
 import tools
+import tensorflow as tf
 
 dataset_dir = "/Users/shenyi/Desktop/thesisCode/data/cuhk03_release/labeled/train/"
 dataset_name = "CUHK03"
