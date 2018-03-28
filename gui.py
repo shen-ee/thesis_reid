@@ -16,7 +16,7 @@ dataset_name = "CUHK03"
 FLAGS = tf.flags.FLAGS
 tf.flags.DEFINE_integer('batch_size', '150', 'batch size for training')
 tf.flags.DEFINE_integer('max_steps', '210000', 'max steps for training')
-tf.flags.DEFINE_string('logs_dir', 'model_dir', 'path to logs directory')
+tf.flags.DEFINE_string('logs_dir', model_dir, 'path to logs directory')
 tf.flags.DEFINE_string('data_dir', 'data/', 'path to dataset')
 tf.flags.DEFINE_float('learning_rate', '0.01', '')
 tf.flags.DEFINE_string('mode', 'train', 'Mode train, val, test')
@@ -218,6 +218,7 @@ class App:
         self.saver = tf.train.Saver()
 
         ckpt = tf.train.get_checkpoint_state(FLAGS.logs_dir)
+        print(ckpt.model_checkpoint_path)
         if ckpt and ckpt.model_checkpoint_path:
             print('Restore model')
             self.saver.restore(self.sess, ckpt.model_checkpoint_path)
@@ -263,6 +264,7 @@ class App:
             self.label_match.config(text="匹配结果：吻合")
         else:
             self.label_match.config(text="匹配结果：不吻合")
+        self.label_confidence.config(text="置信度："+str(prediction[0][0])+","+str(prediction[0][1]))
 
     def confirm(self):  # 确认键的操作
         self.current_person_id = int(self.e.get())
