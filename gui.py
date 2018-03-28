@@ -8,13 +8,15 @@ import cv2
 import numpy as np
 
 dataset_dir = "/Users/shenyi/Desktop/thesisCode/data/cuhk03_release/labeled/train/"
+model_dir = "/Users/shenyi/Documents/GitHub/person-reid/logs/"
 dataset_name = "CUHK03"
+
 
 
 FLAGS = tf.flags.FLAGS
 tf.flags.DEFINE_integer('batch_size', '150', 'batch size for training')
 tf.flags.DEFINE_integer('max_steps', '210000', 'max steps for training')
-tf.flags.DEFINE_string('logs_dir', '/Users/shenyi/Documents/GitHub/person-reid/logs/', 'path to logs directory')
+tf.flags.DEFINE_string('logs_dir', 'model_dir', 'path to logs directory')
 tf.flags.DEFINE_string('data_dir', 'data/', 'path to dataset')
 tf.flags.DEFINE_float('learning_rate', '0.01', '')
 tf.flags.DEFINE_string('mode', 'train', 'Mode train, val, test')
@@ -134,8 +136,10 @@ class App:
         self.frame2 = Frame(self.root)
         self.frame_match = Frame(self.root)  # 显示匹配结果
 
+        # frame0
         label_dataset_name = Label(self.frame0,text="数据集名称："+dataset_name)
         label_dataset_dir = Label(self.frame0,text="数据集路径："+dataset_dir)
+        label_model_dir = Label(self.frame0,text="模型路径："+model_dir)
         w = Label(self.frame0,text="选择id号:")
         self.e = Entry(self.frame0)
         button = Button(self.frame0,text="确认",command = self.confirm)
@@ -152,6 +156,7 @@ class App:
 
         # frame_match
         self.label_match = Label(self.frame_match,text="匹配结果：+++")
+        self.label_confidence = Label(self.frame_match,text="置信度：")
 
         self.frame0.grid(row = 0,columnspan=2)
         self.frame1.grid(row = 1,column = 0)
@@ -160,9 +165,10 @@ class App:
 
         label_dataset_name.grid(row=0,sticky=W,columnspan=3)
         label_dataset_dir.grid(row=1,sticky=W,columnspan=3)
-        w.grid(row = 2,sticky = W)
-        self.e.grid(row = 2,column = 1)
-        button.grid(row = 2,column=2)
+        label_model_dir.grid(row=2,sticky=W,columnspan=3)
+        w.grid(row = 3,sticky = W)
+        self.e.grid(row = 3,column = 1)
+        button.grid(row = 3,column=2)
 
         self.label_person_image_cam1.pack()
         self.label_filename1.pack()
@@ -173,6 +179,7 @@ class App:
         self.button2.pack()
 
         self.label_match.grid(row=0,sticky=W)
+        self.label_confidence.grid(row=1,sticky=W)
 
 
 
@@ -205,36 +212,57 @@ class App:
         train = optimizer.minimize(loss, global_step=global_step)
         lr = FLAGS.learning_rate
 
-        with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
-            self.saver = tf.train.Saver()
+        #with tf.Session() as sess:
+        self.sess = tf.Session()
+        self.sess.run(tf.global_variables_initializer())
+        self.saver = tf.train.Saver()
 
-            ckpt = tf.train.get_checkpoint_state(FLAGS.logs_dir)
-            if ckpt and ckpt.model_checkpoint_path:
-                print('Restore model')
-                self.saver.restore(sess, ckpt.model_checkpoint_path)
+        ckpt = tf.train.get_checkpoint_state(FLAGS.logs_dir)
+        if ckpt and ckpt.model_checkpoint_path:
+            print('Restore model')
+            self.saver.restore(self.sess, ckpt.model_checkpoint_path)
 
-            image1 = cv2.imread("/Users/shenyi/Desktop/thesisCode/data/cuhk03_release/labeled/val/0000_00.jpg")
-            image1 = cv2.resize(image1, (IMAGE_WIDTH, IMAGE_HEIGHT))
-            image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2RGB)
-            image1 = np.reshape(image1, (1, IMAGE_HEIGHT, IMAGE_WIDTH, 3)).astype(float)
-            image2 = cv2.imread("/Users/shenyi/Desktop/thesisCode/data/cuhk03_release/labeled/val/0000_05.jpg")
-            image2 = cv2.resize(image2, (IMAGE_WIDTH, IMAGE_HEIGHT))
-            image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
-            image2 = np.reshape(image2, (1, IMAGE_HEIGHT, IMAGE_WIDTH, 3)).astype(float)
-            test_images = np.array([image1, image2])
+        image1 = cv2.imread("/Users/shenyi/Desktop/thesisCode/data/cuhk03_release/labeled/val/0000_00.jpg")
+        image1 = cv2.resize(image1, (IMAGE_WIDTH, IMAGE_HEIGHT))
+        image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2RGB)
+        image1 = np.reshape(image1, (1, IMAGE_HEIGHT, IMAGE_WIDTH, 3)).astype(float)
+        image2 = cv2.imread("/Users/shenyi/Desktop/thesisCode/data/cuhk03_release/labeled/val/0000_05.jpg")
+        image2 = cv2.resize(image2, (IMAGE_WIDTH, IMAGE_HEIGHT))
+        image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
+        image2 = np.reshape(image2, (1, IMAGE_HEIGHT, IMAGE_WIDTH, 3)).astype(float)
+        test_images = np.array([image1, image2])
 
-            feed_dict = {self.images: test_images, self.is_train: False}
-            prediction = sess.run(self.inference, feed_dict=feed_dict)
-            print(bool(not np.argmax(prediction[0])))
-            if(bool(not np.argmax(prediction[0]))==True):
-                self.label_match.config(text="匹配结果：吻合")
-            else:
-                self.label_match.config(text="匹配结果：不吻合")
+        feed_dict = {self.images: test_images, self.is_train: False}
+        prediction = self.sess.run(self.inference, feed_dict=feed_dict)
+        print(prediction)
+        print(bool(not np.argmax(prediction[0])))
+        if(bool(not np.argmax(prediction[0]))==True):
+            self.label_match.config(text="匹配结果：吻合")
+        else:
+            self.label_match.config(text="匹配结果：不吻合")
+        # self.test_pair("/Users/shenyi/Desktop/thesisCode/data/cuhk03_release/labeled/val/0000_00.jpg","/Users/shenyi/Desktop/thesisCode/data/cuhk03_release/labeled/val/0000_05.jpg")
 
         # tensorflow_end
 
         self.root.mainloop()
+
+    def test_pair(self, image1_dir, image2_dir):
+        image1 = cv2.imread(image1_dir)
+        image1 = cv2.resize(image1, (IMAGE_WIDTH, IMAGE_HEIGHT))
+        image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2RGB)
+        image1 = np.reshape(image1, (1, IMAGE_HEIGHT, IMAGE_WIDTH, 3)).astype(float)
+        image2 = cv2.imread(image2_dir)
+        image2 = cv2.resize(image2, (IMAGE_WIDTH, IMAGE_HEIGHT))
+        image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
+        image2 = np.reshape(image2, (1, IMAGE_HEIGHT, IMAGE_WIDTH, 3)).astype(float)
+        test_images = np.array([image1, image2])
+        feed_dict = {self.images: test_images, self.is_train: False}
+        prediction = self.sess.run(self.inference, feed_dict=feed_dict)
+        print(bool(not np.argmax(prediction[0])))
+        if (bool(not np.argmax(prediction[0])) == True):
+            self.label_match.config(text="匹配结果：吻合")
+        else:
+            self.label_match.config(text="匹配结果：不吻合")
 
     def confirm(self):  # 确认键的操作
         self.current_person_id = int(self.e.get())
@@ -254,33 +282,9 @@ class App:
         self.label_filename2.config(text=person_id + "_05.jpg")
         self.label_person_image_cam2.image = tkimg2  # keep a reference
 
-        with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
-            saver = tf.train.Saver()
 
-            ckpt = tf.train.get_checkpoint_state(FLAGS.logs_dir)
-            if ckpt and ckpt.model_checkpoint_path:
-                print('Restore model')
-                saver.restore(sess, ckpt.model_checkpoint_path)
 
-            image1 = cv2.imread(dataset_dir + person_id + "_00.jpg")
-            image1 = cv2.resize(image1, (IMAGE_WIDTH, IMAGE_HEIGHT))
-            image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2RGB)
-            image1 = np.reshape(image1, (1, IMAGE_HEIGHT, IMAGE_WIDTH, 3)).astype(float)
-            image2 = cv2.imread(dataset_dir + person_id + "_05.jpg")
-            image2 = cv2.resize(image2, (IMAGE_WIDTH, IMAGE_HEIGHT))
-            image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
-            image2 = np.reshape(image2, (1, IMAGE_HEIGHT, IMAGE_WIDTH, 3)).astype(float)
-            test_images = np.array([image1, image2])
-
-            feed_dict = {self.images: test_images, self.is_train: False}
-            prediction = sess.run(self.inference, feed_dict=feed_dict)
-            print(bool(not np.argmax(prediction[0])))
-            if (bool(not np.argmax(prediction[0])) == True):
-                self.label_match.config(text="匹配结果：吻合")
-            else:
-                self.label_match.config(text="匹配结果：不吻合")
-
+        self.test_pair(dataset_dir + person_id + "_00.jpg",dataset_dir + person_id + "_05.jpg")
 
 
     def confirm1(self):  # 确认键的操作
@@ -296,6 +300,9 @@ class App:
         self.label_person_image_cam1.image = tkimg1  # keep a reference
         self.label_filename1.config(text=person_id + "_0" + str(self.current_img_id_cam1) + ".jpg")
 
+        self.test_pair(dataset_dir + person_id + "_0"+str(self.current_img_id_cam1)+".jpg",
+                       dataset_dir + person_id + "_0" + str(self.current_img_id_cam2) + ".jpg")
+
 
     def confirm2(self):  # 确认键的操作
         person_id = tools.format_id(self.current_person_id)
@@ -309,5 +316,8 @@ class App:
         self.label_person_image_cam2.config(image=tkimg2)
         self.label_person_image_cam2.image = tkimg2  # keep a reference
         self.label_filename2.config(text=person_id + "_0" + str(self.current_img_id_cam2) + ".jpg")
+
+        self.test_pair(dataset_dir + person_id + "_0" + str(self.current_img_id_cam1) + ".jpg",
+                       dataset_dir + person_id + "_0" + str(self.current_img_id_cam2) + ".jpg")
 
 app = App()
