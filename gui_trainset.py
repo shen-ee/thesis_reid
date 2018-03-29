@@ -3,6 +3,9 @@ from tkinter import *
 from PIL import Image, ImageTk
 import tools
 
+'''
+这个界面是为了展示数据库中已有地图片
+'''
 dataset_dir = "/Users/shenyi/Desktop/thesisCode/data/cuhk03_release/labeled/train/"
 dataset_name = "CUHK03"
 

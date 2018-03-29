@@ -140,19 +140,19 @@ class App:
         label_dataset_name = Label(self.frame0,text="数据集名称："+dataset_name)
         label_dataset_dir = Label(self.frame0,text="数据集路径："+dataset_dir)
         label_model_dir = Label(self.frame0,text="模型路径："+model_dir)
-        w = Label(self.frame0,text="选择id号:")
-        self.e = Entry(self.frame0)
-        button = Button(self.frame0,text="确认",command = self.confirm)
+        label_id = Label(self.frame0,text="选择id号:")
+        self.entry = Entry(self.frame0)
+        button_confirm = Button(self.frame0,text="确认",command = self.confirm)
 
         # frame1
         self.label_person_image_cam1 = Label(self.frame1)
         self.label_filename1 = Label(self.frame1)
-        self.button1 = Button(self.frame1, text="下一张", command=self.confirm1)
+        self.button_next1 = Button(self.frame1, text="下一张", command=self.next1)
 
         # frame2
         self.label_person_image_cam2 = Label(self.frame2)
         self.label_filename2 = Label(self.frame2)
-        self.button2 = Button(self.frame2, text="下一张", command=self.confirm2)
+        self.button_next2 = Button(self.frame2, text="下一张", command=self.next2)
 
         # frame_match
         self.label_match = Label(self.frame_match,text="匹配结果：+++")
@@ -166,21 +166,20 @@ class App:
         label_dataset_name.grid(row=0,sticky=W,columnspan=3)
         label_dataset_dir.grid(row=1,sticky=W,columnspan=3)
         label_model_dir.grid(row=2,sticky=W,columnspan=3)
-        w.grid(row = 3,sticky = W)
-        self.e.grid(row = 3,column = 1)
-        button.grid(row = 3,column=2)
+        label_id.grid(row = 3,sticky = W)
+        self.entry.grid(row = 3,column = 1)
+        button_confirm.grid(row = 3,column=2)
 
         self.label_person_image_cam1.pack()
         self.label_filename1.pack()
-        self.button1.pack()
+        self.button_next1.pack()
 
         self.label_person_image_cam2.pack()
         self.label_filename2.pack()
-        self.button2.pack()
+        self.button_next2.pack()
 
         self.label_match.grid(row=0,sticky=W)
         self.label_confidence.grid(row=1,sticky=W)
-
 
 
         # tensorflow_start
@@ -267,7 +266,7 @@ class App:
         self.label_confidence.config(text="置信度："+str(prediction[0][0])+","+str(prediction[0][1]))
 
     def confirm(self):  # 确认键的操作
-        self.current_person_id = int(self.e.get())
+        self.current_person_id = int(self.entry.get())
         person_id =tools.format_id(self.current_person_id)
 
         bm1 = Image.open(dataset_dir + person_id + "_00.jpg")
@@ -284,12 +283,10 @@ class App:
         self.label_filename2.config(text=person_id + "_05.jpg")
         self.label_person_image_cam2.image = tkimg2  # keep a reference
 
-
-
         self.test_pair(dataset_dir + person_id + "_00.jpg",dataset_dir + person_id + "_05.jpg")
 
 
-    def confirm1(self):  # 确认键的操作
+    def next1(self):  # 确认键的操作
         person_id = tools.format_id(self.current_person_id)
 
         self.current_img_id_cam1 += 1
@@ -306,7 +303,7 @@ class App:
                        dataset_dir + person_id + "_0" + str(self.current_img_id_cam2) + ".jpg")
 
 
-    def confirm2(self):  # 确认键的操作
+    def next2(self):  # 确认键的操作
         person_id = tools.format_id(self.current_person_id)
 
         self.current_img_id_cam2 += 1
