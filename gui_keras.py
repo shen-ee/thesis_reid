@@ -7,6 +7,9 @@ import cuhk03_dataset
 import cv2
 import numpy as np
 
+import time
+import datetime
+
 from keras import optimizers
 from keras.utils import np_utils, generic_utils
 from keras.models import Sequential,Model,load_model
@@ -126,7 +129,7 @@ class App:
         ii = sorted(range(len(dis)), key=lambda k: dis[k])
         #    embed()
         #    print(ii[:top_num+1])
-        return ii
+        return ii,dis
 
     def single_query(self,query_feature, test_feature, query_label, test_label, test_num):
         test_label_set = np.unique(test_label)  # np.unique() 删除重复的元素，并从大到小返回一个新的元祖或列表
@@ -152,7 +155,7 @@ class App:
             print("temp_gallery_ind:",temp_gallery_ind)
             single_query_feature = query_feature[query_int]
             test_all_feature = test_feature[temp_gallery_ind]
-            result_ind = self.euclidSimilar2(single_query_feature, test_all_feature)
+            result_ind,dis = self.euclidSimilar2(single_query_feature, test_all_feature)
             print(result_ind)
             print(temp_gallery_ind[result_ind[0]])
             top1id = temp_gallery_ind[result_ind[0]]
@@ -170,11 +173,11 @@ class App:
         print('top1: ' + str(topp1) + '\n')
         print('top5: ' + str(topp5) + '\n')
         print('top10: ' + str(topp10) + '\n')
-        self.text_console.insert(3.0,'top1: ' + str(topp1) + '\n')
-        self.text_console.insert(4.0, 'top5: ' + str(topp5) + '\n')
-        self.text_console.insert(5.0, 'top10: ' + str(topp10) + '\n')
-        self.text_console.insert(5.0, 'top1 ID: ' + str(top1id) + '\n')
-
+        self.text_console.insert(2.0,'top1: ' + str(topp1) + '\n')
+        self.text_console.insert(2.0, 'top5: ' + str(topp5) + '\n')
+        self.text_console.insert(2.0, 'top10: ' + str(topp10) + '\n')
+        self.text_console.insert(2.0, 'top1 ID: ' + str(top1id) + '\n')
+        self.text_console.insert(2.0, 'top1 euclid distance: ' + str(dis[0]) + '\n')
         return topp1,top1id
 
     def confirm1(self):  # 确认键的操作
@@ -198,12 +201,22 @@ class App:
         test_img = preprocess_input(test_img)
         query_img = preprocess_input(query_img)
 
+        start = time.time()
         _, test_feature = self.class_triplet_model.predict(test_img)  # [_,2048]
         test_feature = normalize(test_feature)
+        end = time.time()
+        t1 = start-end
+        self.text_console.insert(3.0,"提取gallery特征所需时间："+str(end-start)+"s\n")
         print(len(test_feature[0]))
+        start = time.time()
         _, query_feature = self.class_triplet_model.predict(query_img)
         query_feature = normalize(query_feature)
+        end = time.time()
+        self.text_console.insert(3.0, "提取query特征所需时间：" + str(end-start) + "s\n")
+        start = time.time()
         top1,top1id = self.single_query(query_feature, test_feature, query_label, test_label, test_num=1)
+        end = time.time()
+        self.text_console.insert(3.0, "计算欧几里得距离所需时间：" + str(end-start) + "s\n")
 
         person_id = tools.format_id(top1id)
         self.current_person_id_cam2 = top1id
@@ -257,7 +270,5 @@ class App:
         self.label_person_image_cam2.config(image=tkimg2)
         self.label_person_image_cam2.image = tkimg2  # keep a reference
         self.label_filename2.config(text=person_id2 + "_0" + str(self.current_img_id_cam2) + ".jpg")
-
-
 
 app = App()
