@@ -170,9 +170,9 @@ class App:
         topp5 = topp5 / test_num * 1.0
         topp10 = topp10 / test_num * 1.0
         print('single query')
-        print('top1: ' + str(topp1) + '\n')
-        print('top5: ' + str(topp5) + '\n')
-        print('top10: ' + str(topp10) + '\n')
+        print('top1: ' + str(topp1) )
+        print('top5: ' + str(topp5) )
+        print('top10: ' + str(topp10))
         self.text_console.insert(2.0,'top1: ' + str(topp1) + '\n')
         self.text_console.insert(2.0, 'top5: ' + str(topp5) + '\n')
         self.text_console.insert(2.0, 'top10: ' + str(topp10) + '\n')
