@@ -209,7 +209,6 @@ class App:
 
         # output feature
         f = codecs.open("testfeature.txt", 'w', 'utf-8')
-        f.write("length = "+str(len(test_feature)))
         for feature in test_feature:
             for dim in feature:
                 f.write(str(dim))
