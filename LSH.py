@@ -1,5 +1,5 @@
 import  numpy as np
-from decimal import Decimal
+import time
 
 class LSHparam:
     def __init__(self):
@@ -33,39 +33,41 @@ def readFeature(filename):
     #print(len(features))
     return features
 
-def dis(A,B):  # 马氏距离
-    C=[]
-    for i in range(len(A)):
-        C.append(A[i]^B[i])
+def dist(A,B):  # 马氏距离
+    A = np.array(A)
+    B = np.array(B)
+    C = A^B
     return sum(C)
+
+def rank1(PersonID,PhotoID,param):
+    minnum = -1
+    mindis = 99999
+    querydata = readFeature("features/" + str(PersonID) + "_"+str(PhotoID)+".txt")
+    gallerydata = readFeature("testfeature.txt")
+    query = compressLSH(querydata, param)
+    gallery = compressLSH(gallerydata, param)
+    for i, item in enumerate(gallery):
+        distance = dist(item, query[0])
+        if (distance < mindis):
+            minnum = i
+            mindis = distance
+    if(minnum==PersonID):
+        return 1
+    else:
+        return 0
 
 
 param = LSHparam()
 param.nbits = 512
-
-querydata = readFeature("queryfeature.txt")
+querydata = readFeature("features/0_0.txt")
 
 trainLSH(querydata,param)
 
-query = compressLSH(querydata,param)
+total = 0
+start = time.time()
+for PersonID in range(100):
+    total += rank1(PersonID,0,param)
 
-testsetdata = readFeature("testfeature.txt")
-
-gallery = compressLSH(testsetdata,param)
-
-print("原向量维度为："+str(len(querydata[0])))
-print("目标向量维度为："+str(param.nbits))
-
-minnum = -1
-mindis = 99999
-
-for i,item in enumerate(gallery):
-    distance = dis(item,query[0])
-    if(distance<mindis):
-        minnum = i
-        mindis = distance
-    print(str(i)+":"+str(distance))
-
-print("号码为："+str(minnum))
-
-
+end = time.time()
+print(total/100)
+print( "所需时间：" + str(end-start) + "s\n")

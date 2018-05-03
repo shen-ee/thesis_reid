@@ -94,7 +94,7 @@ class App:
         tkimg1 = ImageTk.PhotoImage(bm1)
 
         self.label_person_image_cam1.config(image=tkimg1)
-        self.label_person_image_cam1.image = tkimg1  # keep a reference
+        self.label_person_image_cam1.image = tkim1  # keep a reference
         self.label_filename1.config(text=person_id + "_0" + str(self.current_img_id_cam1) + ".jpg")
 
 

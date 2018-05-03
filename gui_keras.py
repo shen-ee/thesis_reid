@@ -223,7 +223,7 @@ class App:
         _, query_feature = self.class_triplet_model.predict(query_img)
 
         # output feature
-        f = codecs.open("queryfeature_nonorm.txt", 'w', 'utf-8')
+        f = codecs.open("features/"+str(self.current_person_id_cam1)+".txt", 'w', 'utf-8')
         for feature in query_feature:
             for dim in feature:
                 f.write(str(dim))
