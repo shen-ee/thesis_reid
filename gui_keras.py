@@ -6,6 +6,7 @@ import tensorflow as tf
 import cuhk03_dataset
 import cv2
 import numpy as np
+import codecs
 
 import time
 import datetime
@@ -205,13 +206,44 @@ class App:
         _, test_feature = self.class_triplet_model.predict(test_img)  # [_,2048]
         test_feature = normalize(test_feature)
         end = time.time()
+
+        # output feature
+        f = codecs.open("testfeature.txt", 'w', 'utf-8')
+        f.write("length = "+str(len(test_feature)))
+        for feature in test_feature:
+            for dim in feature:
+                f.write(str(dim))
+                f.write(" ")
+            f.write('\n')
+        # output feature
+
         t1 = start-end
         self.text_console.insert(3.0,"提取gallery特征所需时间："+str(end-start)+"s\n")
         print(len(test_feature[0]))
         start = time.time()
         _, query_feature = self.class_triplet_model.predict(query_img)
+
+        # output feature
+        f = codecs.open("queryfeature_nonorm.txt", 'w', 'utf-8')
+        for feature in query_feature:
+            for dim in feature:
+                f.write(str(dim))
+                f.write(" ")
+            f.write('\n')
+        # output feature
+
         query_feature = normalize(query_feature)
         end = time.time()
+
+        # output feature
+        f = codecs.open("queryfeature.txt", 'w', 'utf-8')
+        for feature in query_feature:
+            for dim in feature:
+                f.write(str(dim))
+                f.write(" ")
+            f.write('\n')
+        # output feature
+
         self.text_console.insert(3.0, "提取query特征所需时间：" + str(end-start) + "s\n")
         start = time.time()
         top1,top1id = self.single_query(query_feature, test_feature, query_label, test_label, test_num=1)
